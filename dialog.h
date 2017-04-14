@@ -13,6 +13,7 @@
 #include <QEvent>
 #include <opencv2/opencv.hpp>
 #include <QLineEdit>
+#include <QThread>
 using namespace cv;
 
 
@@ -38,6 +39,7 @@ private:
     QLineEdit *lineEdit;
 
 signals:
+    void startCacu();
 public slots:
     void StartCap();
     void showVideo();

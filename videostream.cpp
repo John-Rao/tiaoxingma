@@ -14,6 +14,8 @@ VideoStream::VideoStream()
     qRegisterMetaType<Mat>("Mat");
     connect(posMatch,SIGNAL(analy(Mat)),analyzer,SLOT(receiveImg(Mat)));
     connect(analyzer,SIGNAL(successGet(QString)),this,SLOT(getResult(QString)));
+
+    connect(this,SIGNAL(startCacu()),analyzer,SLOT(setStart()));
 }
 
 VideoStream::~VideoStream()
@@ -49,6 +51,12 @@ void VideoStream::getResult(QString result)
     qDebug()<<result;
     emit getStr(result);
 }
+
+void VideoStream::setStart()
+{
+    emit startCacu();
+}
+
 
 void VideoStream::run()
 {

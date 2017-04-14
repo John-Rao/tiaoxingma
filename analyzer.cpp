@@ -6,13 +6,24 @@ static char A[]={0x0D,0x19,0x13,0x3D,0x23,0x31,0x2F,0x3B,0x37,0x0B};//条码解�
 static char B[]={0x27,0x33,0x1B,0x21,0x1D,0x39,0x05,0x11,0x09,0x17};
 static char R[]={0x72,0x66,0x6C,0x42,0x5C,0x4E,0x50,0x44,0x48,0x74};
 
-static int ORDER[13]={1,0,0,1,0,1,-1,2,2,2,2,2,2};//EAN-13条码的奇偶次序（1表示奇次序0表示偶次序）
+static int ORDER[10][13]={1,1,1,1,1,1,-1,2,2,2,2,2,2,
+                          1,1,0,1,0,0,-1,2,2,2,2,2,2,
+                          1,1,0,0,1,0,-1,2,2,2,2,2,2,
+                          1,1,0,0,0,1,-1,2,2,2,2,2,2,
+                          1,0,1,1,0,0,-1,2,2,2,2,2,2,
+                          1,0,0,1,1,0,-1,2,2,2,2,2,2,
+                          1,0,0,0,1,1,-1,2,2,2,2,2,2,
+                          1,0,1,0,1,0,-1,2,2,2,2,2,2,
+                          1,0,1,0,0,1,-1,2,2,2,2,2,2,
+                          1,0,0,1,0,1,-1,2,2,2,2,2,2,
+                         };//EAN-13条码的奇偶次序（1表示奇次序0表示偶次序）
 Analyzer::Analyzer()
 {
    // ImgtoNum();
+    startFlag=0;
 }
 
-void Analyzer::ImgtoNum()
+bool Analyzer::ImgtoNum(int pnum)
 {
     Mat Img_gray;
     cvtColor(rawImg,Img_gray,COLOR_BGR2GRAY,1);
@@ -33,27 +44,23 @@ void Analyzer::ImgtoNum()
         std::vector<classis> blackBar;
         std::vector<classis> whiteBar;
 
-        int get=0;
         //对整幅图逐行检测
         while(startPos<high){
             res="";
             getSize(startPos,width,Img_2zhi,&blackBar,&whiteBar);//获取黑白条纹的位置和宽度
-            cacuDig(blackBar,whiteBar,result);//解析成数字
-            if(checkOut(result)){//校验
+            cacuDig(blackBar,whiteBar,result,pnum);//解析成数字
+            if(checkOut(result,pnum)){//校验
                 for(int i=0;i<12;i++){
                     res+=QString::number(result[i],10);
                 }
-                get=1;
-                emit successGet(res);
-                break;
+                emit successGet(QString::number(pnum)+res);
+                return true;
             }
 
             startPos+=2;
         }
-        if(get){
-            break;
-        }
     }
+    return false;
 }
 
 void Analyzer::getSize(int startPos, int width, Mat Img_2zhi, std::vector<classis> *blackBar, std::vector<classis> *whiteBar)
@@ -87,7 +94,7 @@ void Analyzer::getSize(int startPos, int width, Mat Img_2zhi, std::vector<classi
     (*blackBar).push_back(classis(tempBlackPos,tempWhitePos-tempBlackPos));
 }
 
-void Analyzer::cacuDig(std::vector<classis> blackBar, std::vector<classis> whiteBar, int result[])
+void Analyzer::cacuDig(std::vector<classis> blackBar, std::vector<classis> whiteBar, int result[],int preNum)
 {
     float num1,num2,num3,num4;
     float temp1,temp2,temp3,temp4;
@@ -99,7 +106,7 @@ void Analyzer::cacuDig(std::vector<classis> blackBar, std::vector<classis> white
             if(i==6){
                 continue;
             }
-            switch(ORDER[i]){
+            switch(ORDER[preNum][i]){
             case 1:
             {
                 num2=(float)blackBar[i*2+2].wid;
@@ -232,12 +239,12 @@ void Analyzer::cacuDig(std::vector<classis> blackBar, std::vector<classis> white
     }
 }
 
-bool Analyzer::checkOut(int result[])
+bool Analyzer::checkOut(int result[],int prenum)
 {
     int check=0;
     check=result[10]+result[8]+result[6]+result[4]+result[2]+result[0];
     check*=3;
-    check+=result[9]+result[7]+result[5]+result[3]+result[1]+9;
+    check+=result[9]+result[7]+result[5]+result[3]+result[1]+prenum;
     check=check%10;
     check=10-check;
     if(check==result[11]){
@@ -256,6 +263,18 @@ bool Analyzer::checkOut(int result[])
 
 void Analyzer::receiveImg(Mat rawImg)
 {
-    rawImg.copyTo(this->rawImg);
-    ImgtoNum();
+    if(!startFlag){
+        rawImg.copyTo(this->rawImg);
+        for(int i=9;i>=0;i--){
+            if(ImgtoNum(i)){
+                startFlag=1;
+                break;
+            }
+        }
+    }
+}
+
+void Analyzer::setStart()
+{
+    startFlag=0;
 }

@@ -21,15 +21,17 @@ class Analyzer:public QObject
     Q_OBJECT
 public:
     Analyzer();
-    void ImgtoNum();
+    bool ImgtoNum(int pnum);
     void getSize(int startPos,int width,Mat Img_2zhi,std::vector<classis> *blackBar,std::vector<classis> *whiteBar);
-    void cacuDig(std::vector<classis> blackBar, std::vector<classis> whiteBar, int result[]);
-    bool checkOut(int result[]);
+    void cacuDig(std::vector<classis> blackBar, std::vector<classis> whiteBar, int result[], int preNum);
+    bool checkOut(int result[], int prenum);
 private:
     Mat rawImg;
+    bool startFlag;
 
 public slots:
     void receiveImg(Mat rawImg);
+    void setStart();
 signals:
     void successGet(QString);
 };

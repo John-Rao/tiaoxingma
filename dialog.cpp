@@ -30,6 +30,7 @@ Dialog::Dialog(QWidget *parent)
     connect(continueBtn,SIGNAL(clicked(bool)),this,SLOT(continueEve()));
     connect(timer,SIGNAL(timeout()),this,SLOT(showVideo()));
     connect(stream,SIGNAL(getStr(QString)),this,SLOT(showRes(QString)));
+    connect(this,SIGNAL(startCacu()),stream,SLOT(setStart()));
 
 }
 
@@ -70,8 +71,10 @@ void Dialog::continueEve()
 {
 
     continueBtn->setDisabled(true);
+    emit startCacu();
     timer->start(30);
 }
+
 
 void Dialog::StartCap()
 {

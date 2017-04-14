@@ -25,11 +25,13 @@ private:
     Analyzer *analyzer;
 private slots:
     void getResult(QString result);
+    void setStart();
 
 protected:
     void run();
 signals:
     void getStr(QString);
+    void startCacu();
 };
 
 #endif // VIDEOSTREAM_H
